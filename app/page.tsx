@@ -1,43 +1,62 @@
 "use client";
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { HEROES_LIST } from './heroes';
+import { HEROES_LIST, Hero } from './heroes'; 
+
+const ATTRIBUTES = [
+  { key: 'str', name: 'СИЛА', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_strength.png', color: 'text-red-500' },
+  { key: 'agi', name: 'ЛОВКОСТЬ', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_agility.png', color: 'text-green-500' },
+  { key: 'int', name: 'ИНТЕЛЛЕКТ', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_intelligence.png', color: 'text-blue-500' },
+  { key: 'uni', name: 'УНИВЕРСАЛЬНЫЕ', icon: 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png', color: 'text-purple-500' },
+];
 
 export default function DotaPage() {
   const [search, setSearch] = useState("");
-  const filtered = HEROES_LIST.filter(h => h.name.toLowerCase().includes(search.toLowerCase()));
+  const grouped = useMemo(() => {
+    const res: any = { str: [], agi: [], int: [], uni: [] };
+    HEROES_LIST.forEach(h => res[h.attr]?.push(h));
+    return res;
+  }, []);
 
   return (
-    <main className="min-h-screen bg-[#020406] text-white p-4 md:p-10 font-sans">
+    <main className="min-h-screen bg-[#050608] text-white p-6 md:p-12 font-sans selection:bg-blue-600">
       <div className="max-w-[1600px] mx-auto">
-        <h1 className="text-6xl md:text-8xl font-black italic uppercase text-center mb-12 tracking-tighter drop-shadow-2xl">
-          DOTA 2 <span className="text-blue-500">META</span>
-        </h1>
-        
-        <input 
-          className="w-full max-w-lg mx-auto block p-5 bg-[#1c242d] border-4 border-gray-800 rounded-3xl mb-16 focus:border-blue-600 outline-none transition-all text-xl shadow-xl placeholder:text-gray-600"
-          placeholder="Поиск по 124 героям..."
-          onChange={(e) => setSearch(e.target.value)}
-        />
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4">
-          {filtered.map(hero => (
-            <Link href={`/hero/${hero.id}`} key={hero.id} className="group hover:-translate-y-2 transition-all duration-300">
-              <div className="bg-[#1c242d] border-2 border-gray-800 rounded-2xl overflow-hidden group-hover:border-blue-500 shadow-xl">
-                <img 
-                  src={`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${hero.img}.png`} 
-                  className="w-full grayscale group-hover:grayscale-0 transition-all" 
-                  alt={hero.name}
-                />
-                <div className="p-3 text-center bg-black/40">
-                  <p className="font-black uppercase text-[8px] text-gray-500 truncate">{hero.name}</p>
-                  <p className={`text-sm font-black italic ${Number(hero.wr) >= 50 ? 'text-green-500' : 'text-red-500'}`}>{hero.wr}%</p>
-                </div>
-              </div>
-            </Link>
-          ))}
+        <div className="flex justify-between items-center mb-16">
+          <h1 className="text-6xl font-black italic uppercase tracking-tighter">DOTA 2 <span className="text-blue-500">PRO</span></h1>
+          <input 
+            className="p-4 bg-[#1c242d] border border-white/10 rounded-xl outline-none focus:border-blue-500 w-80"
+            placeholder="Поиск героя..."
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
+
+        {ATTRIBUTES.map(attr => (
+          <div key={attr.key} className="mb-12">
+            <div className="flex items-center gap-3 mb-6">
+              <img src={attr.icon} className="w-8 h-8" />
+              <h2 className={`text-2xl font-black italic ${attr.color}`}>{attr.name}</h2>
+              <div className="h-[1px] flex-grow bg-white/5"></div>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-3">
+              {grouped[attr.key]?.map((hero: Hero) => {
+                const isMatch = hero.name.toLowerCase().includes(search.toLowerCase());
+                return (
+                  <Link href={`/hero/${hero.id}`} key={hero.id} className={`group transition-all ${isMatch ? 'opacity-100' : 'opacity-10 pointer-events-none'}`}>
+                    <div className="relative bg-black rounded-lg overflow-hidden border border-gray-800 group-hover:border-blue-500 transition-all h-24">
+                      <img src={`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${hero.img}.png`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent"></div>
+                      <div className="absolute bottom-1 w-full text-center">
+                        <p className="text-[7px] font-black uppercase text-gray-400 group-hover:text-white transition-colors">{hero.name}</p>
+                        <p className="text-[10px] font-bold text-green-500">{hero.wr}%</p>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </main>
   );
