@@ -1,47 +1,43 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { HEROES_LIST } from './heroes';
 
 export default function DotaPage() {
-  const [heroes, setHeroes] = useState<any[]>([]);
   const [search, setSearch] = useState("");
-
-  useEffect(() => {
-    fetch('https://api.opendota.com/api/heroStats')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setHeroes(data);
-      })
-      .catch(err => console.log(err));
-  }, []);
-
-  const filtered = heroes.filter(h => 
-    h.localized_name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = HEROES_LIST.filter(h => h.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <main className="min-h-screen bg-black text-white p-10">
-      <h1 className="text-5xl font-black text-red-600 text-center mb-10 uppercase italic">Dota 2 Meta</h1>
-      
-      <input 
-        className="block w-full max-w-md mx-auto p-4 bg-[#1c242d] border border-gray-800 rounded-xl mb-10"
-        placeholder="Поиск героя..."
-        onChange={(e) => setSearch(e.target.value)}
-      />
+    <main className="min-h-screen bg-[#020406] text-white p-4 md:p-10 font-sans">
+      <div className="max-w-[1600px] mx-auto">
+        <h1 className="text-6xl md:text-8xl font-black italic uppercase text-center mb-12 tracking-tighter drop-shadow-2xl">
+          DOTA 2 <span className="text-blue-500">META</span>
+        </h1>
+        
+        <input 
+          className="w-full max-w-lg mx-auto block p-5 bg-[#1c242d] border-4 border-gray-800 rounded-3xl mb-16 focus:border-blue-600 outline-none transition-all text-xl shadow-xl placeholder:text-gray-600"
+          placeholder="Поиск по 124 героям..."
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-        {filtered.map(hero => (
-          <Link href={`/hero/${hero.id}`} key={hero.id} className="hover:scale-105 transition-transform">
-            <div className="bg-[#1c242d] rounded-2xl overflow-hidden border border-gray-800 text-center pb-4">
-              <img src={`https://api.opendota.com${hero.img}`} className="w-full h-32 object-cover mb-2" />
-              <p className="font-bold text-xs uppercase text-gray-400">{hero.localized_name}</p>
-              <p className="text-xl font-black text-red-500">
-                {(hero["8_pick"] > 0 ? (hero["8_win"]/hero["8_pick"]*100) : 50).toFixed(1)}%
-              </p>
-            </div>
-          </Link>
-        ))}
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-4">
+          {filtered.map(hero => (
+            <Link href={`/hero/${hero.id}`} key={hero.id} className="group hover:-translate-y-2 transition-all duration-300">
+              <div className="bg-[#1c242d] border-2 border-gray-800 rounded-2xl overflow-hidden group-hover:border-blue-500 shadow-xl">
+                <img 
+                  src={`https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/${hero.img}.png`} 
+                  className="w-full grayscale group-hover:grayscale-0 transition-all" 
+                  alt={hero.name}
+                />
+                <div className="p-3 text-center bg-black/40">
+                  <p className="font-black uppercase text-[8px] text-gray-500 truncate">{hero.name}</p>
+                  <p className={`text-sm font-black italic ${Number(hero.wr) >= 50 ? 'text-green-500' : 'text-red-500'}`}>{hero.wr}%</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </main>
   );
